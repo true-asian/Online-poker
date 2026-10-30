@@ -1,22 +1,30 @@
 import { Table, TableError } from './table.js';
-import { publicUser } from './auth.js';
+import { publicUser } from './players.js';
 import { TABLES } from './config.js';
+
+/** Players who closed their tab are forgotten (and their name freed) after this long. */
+const IDLE_PLAYER_MS = 10 * 60_000;
 
 /** Owns every table and wires them to Socket.IO clients. */
 export class Room {
-  constructor(io, store) {
+  /**
+   * @param {import('socket.io').Server} io
+   * @param {import('./players.js').PlayerStore} players
+   */
+  constructor(io, players) {
     this.io = io;
-    this.store = store;
+    this.players = players;
     this.watchers = new Map(); // tableId -> Set<socket>
     this.userSockets = new Map(); // userId -> Set<socket>
     this.lastLobby = '';
     this.tables = new Map(TABLES.map((cfg) => [cfg.id, new Table(cfg, {
-      store,
+      store: players,
       onUpdate: (t) => this.emitTable(t),
       onChips: (userId) => this.emitMe(userId),
       hasAudience: (id) => (this.watchers.get(id)?.size ?? 0) > 0,
     })]));
     setInterval(() => this.emitLobby(), 1500).unref();
+    setInterval(() => this.forgetIdlePlayers(), 60_000).unref();
   }
 
   lobby() {
@@ -29,6 +37,10 @@ export class Room {
     return t;
   }
 
+  isSeated(userId) {
+    return [...this.tables.values()].some((t) => t.seatOf(userId) >= 0);
+  }
+
   emitTable(table) {
     for (const socket of this.watchers.get(table.id) ?? []) {
       socket.emit('table:state', table.viewFor(socket.data.userId));
@@ -36,7 +48,7 @@ export class Room {
   }
 
   emitMe(userId) {
-    const user = this.store.user(userId);
+    const user = this.players.user(userId);
     if (!user) return;
     for (const socket of this.userSockets.get(userId) ?? []) socket.emit('me', publicUser(user));
   }
@@ -56,6 +68,19 @@ export class Room {
     socket.data.watching = null;
   }
 
+  /** Stand a player up everywhere and forget them. */
+  endSession(userId) {
+    for (const t of this.tables.values()) t.stand(userId);
+    this.players.remove(userId);
+  }
+
+  forgetIdlePlayers() {
+    const cutoff = Date.now() - IDLE_PLAYER_MS;
+    for (const p of [...this.players.byId.values()]) {
+      if (!this.userSockets.has(p.id) && p.lastSeen < cutoff && !this.isSeated(p.id)) this.players.remove(p.id);
+    }
+  }
+
   /** @param {import('socket.io').Socket} socket  socket.data.userId is set by the auth middleware */
   attach(socket) {
     const { userId } = socket.data;
@@ -72,8 +97,8 @@ export class Room {
       }
     });
     const user = () => {
-      const u = this.store.user(userId);
-      if (!u) throw new TableError('Account not found');
+      const u = this.players.user(userId);
+      if (!u) throw new TableError('Your session has ended — refresh to play again');
       return u;
     };
 
@@ -82,6 +107,12 @@ export class Room {
       socket.emit('lobby', this.lobby());
     });
     on('lobby:leave', () => socket.leave('lobby'));
+
+    on('player:reload', () => {
+      if (!this.players.reload(user().id)) throw new TableError('Reloads are available once you have under 1,000 chips in total');
+      this.emitMe(userId);
+    });
+    on('player:quit', () => this.endSession(userId)); // the client disconnects itself
 
     on('table:watch', ({ tableId }) => {
       const t = this.table(tableId);
@@ -107,8 +138,12 @@ export class Room {
       const set = this.userSockets.get(userId);
       set?.delete(socket);
       if (set && !set.size) this.userSockets.delete(userId);
+      const p = this.players.user(userId);
+      if (p) p.lastSeen = Date.now();
     });
 
+    const p = this.players.user(userId);
+    if (p) p.lastSeen = Date.now();
     this.emitMe(userId);
   }
 }

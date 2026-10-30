@@ -24,7 +24,7 @@ export class Table {
   /**
    * @param {{id:string, name:string, maxSeats:number, smallBlind:number, bigBlind:number}} cfg
    * @param {object} deps
-   * @param {ReturnType<import('./db.js').openStore>} deps.store
+   * @param {import('./players.js').PlayerStore} deps.store  chip accounting (buyIn / cashOut / adjustInPlay)
    * @param {(table:Table) => void} deps.onUpdate   state changed; push views to watchers
    * @param {(userId:number) => void} deps.onChips  a user's bankroll / in-play chips changed
    * @param {(tableId:string) => boolean} deps.hasAudience  someone is watching

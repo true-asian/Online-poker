@@ -6,12 +6,12 @@
   "type": "module",
   "main": "server/index.js",
   "scripts": {
-    "start": "node --disable-warning=ExperimentalWarning server/index.js",
-    "dev": "node --watch --disable-warning=ExperimentalWarning server/index.js",
-    "test": "node --test --disable-warning=ExperimentalWarning test/*.test.js"
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=20.11"
   },
   "repository": {
     "type": "git",
