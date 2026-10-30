@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>All In Poker Room</title>
+  <meta name="description" content="Play-money No-Limit Texas Hold'em. Real-time cash tables with friends and bots.">
+  <meta name="theme-color" content="#06080c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="arena" aria-hidden="true"></div>
+
+  <header class="topbar" hidden>
+    <a class="brand" href="#/lobby" aria-label="Lobby">
+      <span class="brand-mark">♠</span>
+      <span class="brand-text">ALL IN<small>POKER ROOM</small></span>
+    </a>
+    <div class="account">
+      <div class="chips-readout">
+        <span class="label">Bankroll</span>
+        <span class="value" data-bankroll>0</span>
+      </div>
+      <div class="chips-readout muted" data-inplay-wrap>
+        <span class="label">On tables</span>
+        <span class="value" data-inplay>0</span>
+      </div>
+      <button class="btn gold small" data-reload hidden>Reload 10,000</button>
+      <span class="username" data-username></span>
+      <button class="btn ghost small" data-logout>Log out</button>
+    </div>
+  </header>
+
+  <main id="view"></main>
+  <div class="toasts" aria-live="polite"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

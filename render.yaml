@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: all-in-poker
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /

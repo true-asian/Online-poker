@@ -1,0 +1,25 @@
+{
+  "name": "online-poker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Play-money No-Limit Texas Hold'em poker room with real-time multiplayer tables and bots.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning server/index.js",
+    "test": "node --test --disable-warning=ExperimentalWarning test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asiandude-me/Online-poker.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.22.3",
+    "socket.io": "^4.8.4"
+  }
+}
